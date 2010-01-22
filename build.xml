@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<project default="deploy">
+
+    <description>
+        This build file supports the DeepaMehta 3 plugin developer.
+        There is only one target, "deploy", which copies the plugin files (attachments, views,
+        fulltext views) to the respective CouchDB directories ready to be uploaded by CouchApp.
+
+        This build file can be re-used for your own DeepaMehta 3 plugin projects.
+        Only one thing requires configuration: Set the property "dm3-repos.dir" to where your
+        DeepaMehta 3 installation (the Git repository) is found.
+    </description>
+
+	<property name="dm3-repos.dir" value="/Users/jri/Projects/DeepaMehta 3/deepamehta3"/>
+
+    <target name="deploy">
+
+        <basename file="${basedir}" property="project.name"/>
+        <available file="vendor/views"    property="views.present"/>
+        <available file="vendor/fulltext" property="fulltextviews.present"/>
+
+        <copy todir="${dm3-repos.dir}/vendor/${project.name}" preservelastmodified="true">
+            <fileset dir="vendor">
+                <include name="_attachments/"/>
+            </fileset>
+        </copy>
+
+        <antcall target="copy-views"/>
+        <antcall target="copy-fulltextviews"/>
+
+    </target>
+
+    <target name="copy-views" if="views.present">
+        <copy todir="${dm3-repos.dir}/views" preservelastmodified="true">
+            <fileset dir="vendor/views"/>
+        </copy>
+    </target>
+
+    <target name="copy-fulltextviews" if="fulltextviews.present">
+        <copy todir="${dm3-repos.dir}/fulltext" preservelastmodified="true">
+            <fileset dir="vendor/fulltext"/>
+        </copy>
+    </target>
+
+</project>
