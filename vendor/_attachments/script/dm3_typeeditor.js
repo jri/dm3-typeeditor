@@ -9,6 +9,16 @@ function dm3_typeeditor() {
         implementation: "PlainDocument"
     })
 
+    // The type definition used for newly created topic types
+    var DEFAULT_TYPE_DEFINITION = {
+        fields: [
+            {id: "Name",         model: {type: "text"}, view: {editor: "single line"}, content: ""},
+            {id: "Description",  model: {type: "html"}, view: {editor: "multi line"},  content: ""}
+        ],
+        view: {},
+        implementation: "PlainDocument"
+    }
+
     // TODO: let this table build dynamically by installed plugins
     var FIELD_TYPES = {
         text: "Text",
@@ -57,11 +67,11 @@ function dm3_typeeditor() {
 
     this.pre_create = function(doc) {
         if (doc.type == "Topic" && doc.topic_type == "Topic Type") {
-            // Note: only types created interactively must be extended by an (empty)
-            // type definition. Types created programatically (through plugins)
-            // already have an type definition (which must not be overridden).
+            // Note: types created interactively must be extended by an default type definition.
+            // By contrast, types created programatically (through plugins) already have an
+            // type definition (which must not be overridden).
             if (!doc.type_definition) {
-                doc.type_definition = {fields: [], view: {}, implementation: "PlainDocument"}
+                doc.type_definition = DEFAULT_TYPE_DEFINITION
             }
         }
     }
@@ -77,11 +87,11 @@ function dm3_typeeditor() {
 
     this.render_field_content = function(field, doc) {
         if (field.model.type == "field-definition") {
-            var html = ""
+            var content = $("<ul>")
             for (var i = 0, field; field = doc.type_definition.fields[i]; i++) {
-                html += field.id + " (" + FIELD_TYPES[field.model.type] + ")<br>"
+                content.append($("<li>").text(field_label(field) + " (" + FIELD_TYPES[field.model.type] + ")"))
             }
-            return html
+            return content
         }
     }
 
@@ -153,68 +163,80 @@ function dm3_typeeditor() {
         create_topic("Topic Type", {"type-id": type_id}, {type_definition: typedef})
     }
 
-    function add_field_editor(field, i) {
-        var field_editor = new FieldEditor(field, i)
-        field_editors.push(field_editor)
-        $("#field-editors").append(field_editor.dom)
-    }
-
     function do_add_field() {
         // the default field is a single line text field, with yet empty ID and label
         var field = {id: "", model: {type: "text"}, view: {editor: "single line", label: ""}, content: ""}
         add_field_editor(field, field_editors.length)
     }
 
+    function add_field_editor(field, i) {
+        var field_editor = new FieldEditor(field, i)
+        field_editors.push(field_editor)
+        $("#field-editors").append(field_editor.dom)
+    }
+
     function FieldEditor(field, editor_id) {
 
         var editor = this
         var delete_button = ui.button("deletefield-button_" + editor_id, do_delete_field, "", "circle-minus")
-        var name_field = $("<input>").val(field.id)
-        var fieldtype_menu_id = "fieldtype-menu_" + editor_id
+        var fieldname_input = $("<input>").val(field_label(field))
+        var fieldtype_menu = create_fieldtype_menu()
         var td1 = $("<td>").append(delete_button)
         var td2 = $("<td>")
-        td2.append("Name: ").append(name_field).append("<br>")
-        td2.append("Type: ").append(fieldtype_menu())
+        // - options area -
+        // The options area holds fieldtype-specific GUI elements.
+        // For text fields, e.g. the text editor menu ("single line" / "multi line")
+        var options = clone(field)          // model
+        var options_area = $("<span>")      // view
+        var texteditor_menu                 // view
+        var lines_input                     // view
+        //
+        td2.append("Field Name ").append(fieldname_input).append("<br>")
+        td2.append("Type ").append(fieldtype_menu.dom).append(options_area)
+        build_options_area()
         //
         this.field_id = field.id
         this.dom = $("<tr>").append(td1).append(td2)
         //
-        this.field_is_new = !field.id
-        this.field_is_deleted = false
-        this.field_has_changed = field.id
+        this.field_is_new = !field.id       // Maximal one flag evaluates to true.
+        this.field_is_deleted = false       // Note: all flags might evaluate to false. This is the case
+        this.field_has_changed = field.id   // for newly added fields which are removed right away.
 
         this.get_new_field = function() {
-            return {
-                id: to_id(get_fieldname()),
-                model: {type: get_fieldtype()},
-                view: {editor: "single line", label: get_fieldname()},
-                content: ""
-            }
+            field.id = to_id(fieldname_input.val())
+            update_field()
+            return field
         }
 
         this.update_field = function() {
-            field.model.type = get_fieldtype()
-            field.id = get_fieldname()
+            update_field()
         }
 
-        function get_fieldname() {
-            return name_field.val()
+        /**
+         * Reads out the status of the GUI elements (view) and updates the field (model) accordingly.
+         */
+        function update_field() {
+            field.model = options.model
+            field.view = options.view
+            // Note: the input fields must be read out manually
+            // (for input fields the "options" model is not updated on-the-fly)
+            field.view.label = fieldname_input.val()
+            if (lines_input) {
+                field.view.lines = lines_input.val()
+            }   
         }
 
-        function get_fieldtype() {
-            return ui.menu_item(fieldtype_menu_id).value
-        }
-
-        function fieldtype_menu() {
-            var fieldtype_menu = ui.menu(fieldtype_menu_id)
+        function create_fieldtype_menu() {
+            var menu_id = "fieldtype-menu_" + editor_id
+            var menu = ui.menu(menu_id, fieldtype_changed)
             // add items
             for (var fieldtype in FIELD_TYPES) {
-                ui.add_menu_item(fieldtype_menu_id, {label: FIELD_TYPES[fieldtype], value: fieldtype})
+                menu.add_item({label: FIELD_TYPES[fieldtype], value: fieldtype})
             }
             // select item
-            ui.select_menu_item(fieldtype_menu_id, field.model.type)
+            menu.select(field.model.type)
             //
-            return fieldtype_menu
+            return menu
         }
 
         function do_delete_field() {
@@ -226,6 +248,60 @@ function dm3_typeeditor() {
                 editor.field_has_changed = false
             } else {
                 editor.field_is_new = false
+            }
+        }
+
+        function fieldtype_changed(menu_item) {
+            options.model.type = menu_item.value
+            update_options_area()
+        }
+
+        function update_options_area() {
+            options_area.empty()
+            build_options_area()
+        }
+
+        function build_options_area() {
+            // TODO: let the options area build by installed plugins
+            switch (options.model.type) {
+            case "text":
+                // text editor menu
+                build_texteditor_menu()
+                // lines input
+                if (options.view.editor == "multi line") {
+                    build_lines_input()
+                }
+                break;
+            case "html":
+                build_lines_input()
+                break;
+            case "date":
+                break;
+            case "relation":
+                break;
+            default:
+                alert("ERROR at FieldEditor.build_options_area: unexpected field type (" + options.model.type + ")")
+            }
+
+            function build_texteditor_menu() {
+                texteditor_menu = ui.menu("texteditor-menu_" + editor_id, texteditor_changed)
+                texteditor_menu.add_item({label: "Single Line", value: "single line"})
+                texteditor_menu.add_item({label: "Multi Line", value: "multi line"})
+                texteditor_menu.select(options.view.editor)
+                //
+                options_area.append(texteditor_menu.dom)
+
+                function texteditor_changed(menu_item) {
+                    options.view.editor = menu_item.value
+                    update_options_area()
+                }
+            }
+
+            function build_lines_input() {
+                lines_input = $("<input>").attr("size", 3)
+                lines_input.val(options.view.lines || DEFAULT_AREA_HEIGHT)
+                //
+                options_area.append("Lines ").append(lines_input)
             }
         }
     }
