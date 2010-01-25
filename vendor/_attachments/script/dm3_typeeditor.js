@@ -188,7 +188,6 @@ function dm3_typeeditor() {
         // For text fields, e.g. the text editor menu ("single line" / "multi line")
         var options = clone(field)          // model
         var options_area = $("<span>")      // view
-        var texteditor_menu                 // view
         var lines_input                     // view
         //
         td2.append("Field Name ").append(fieldname_input).append("<br>")
@@ -223,7 +222,11 @@ function dm3_typeeditor() {
             field.view.label = fieldname_input.val()
             if (lines_input) {
                 field.view.lines = lines_input.val()
-            }   
+            }
+            //
+            if (field.model.type == "relation") {
+                options.view.editor = "checkboxes"
+            }
         }
 
         function create_fieldtype_menu() {
@@ -253,6 +256,26 @@ function dm3_typeeditor() {
 
         function fieldtype_changed(menu_item) {
             options.model.type = menu_item.value
+            //
+            // FIXME: must adjust model here, e.g. when switching from "relation" to "text" -- not nice!
+            // TODO: let the adjustment do by installed plugins.
+            switch (options.model.type) {
+            case "text":
+                if (options.view.editor == "checkboxes") {
+                    options.view.editor = "single line"
+                }
+                break
+            case "html":
+                break
+            case "date":
+                break
+            case "relation":
+                if (!options.model.related_type) {
+                    options.model.related_type = keys(topic_types)[0]
+                }
+                break
+            }
+            //
             update_options_area()
         }
 
@@ -271,20 +294,21 @@ function dm3_typeeditor() {
                 if (options.view.editor == "multi line") {
                     build_lines_input()
                 }
-                break;
+                break
             case "html":
                 build_lines_input()
-                break;
+                break
             case "date":
-                break;
+                break
             case "relation":
-                break;
+                build_topictype_menu()
+                break
             default:
                 alert("ERROR at FieldEditor.build_options_area: unexpected field type (" + options.model.type + ")")
             }
 
             function build_texteditor_menu() {
-                texteditor_menu = ui.menu("texteditor-menu_" + editor_id, texteditor_changed)
+                var texteditor_menu = ui.menu("texteditor-menu_" + editor_id, texteditor_changed)
                 texteditor_menu.add_item({label: "Single Line", value: "single line"})
                 texteditor_menu.add_item({label: "Multi Line", value: "multi line"})
                 texteditor_menu.select(options.view.editor)
@@ -302,6 +326,17 @@ function dm3_typeeditor() {
                 lines_input.val(options.view.lines || DEFAULT_AREA_HEIGHT)
                 //
                 options_area.append("Lines ").append(lines_input)
+            }
+
+            function build_topictype_menu() {
+                var topictype_menu = create_type_menu("topictype-menu_" + editor_id, topictype_changed)
+                topictype_menu.select(options.model.related_type)
+                //
+                options_area.append(topictype_menu.dom)
+
+                function topictype_changed(menu_item) {
+                    options.model.related_type = menu_item.label
+                }
             }
         }
     }
