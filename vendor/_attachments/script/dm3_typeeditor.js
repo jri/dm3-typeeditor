@@ -52,12 +52,11 @@ function dm3_typeeditor() {
         }
         // 2) Extend and update the cached type definitions by the DB's type definitions.
         for (var type_id in db_topic_types) {
-            // Note 1: we override all cached type definitions with the DB's version because
-            // it might differ. This is the case if programatically created (through plugins)
+            // Note: we override all cached type definitions with the DB's version because it
+            // might differ. This is the case if programatically created (through plugins)
             // type definitions are changed interactively.
-            // Note 2: semantically this is an "update type" but functional there is no
-            // difference to "add type"
-            add_topic_type(type_id, db_topic_types[type_id])
+            add_topic_type(type_id, db_topic_types[type_id])    // Note: semantically this is an "update type" but
+                                                                // functional there is no difference to "add type"
             // load_count++
         }
         //
@@ -76,12 +75,19 @@ function dm3_typeeditor() {
         }
     }
 
+    /**
+     * Once a "Topic Type" topic is updated we must
+     * 1) Update the cached type definition.
+     * 2) Rebuild the "Create" button's type menu.
+     */
     this.post_update = function(doc) {
         if (doc.type == "Topic" && doc.topic_type == "Topic Type") {
-            // Note: semantically this is an "update type" but functional there is no
-            // difference to "add type"
+            // 1) Update cached type definition
             var type_id = get_field(doc, "type-id").content
-            add_topic_type(type_id, doc.type_definition)
+            add_topic_type(type_id, doc.type_definition)    // Note: semantically this is an "update type" but
+                                                            // functional there is no difference to "add type"
+            // 2) Rebuild type menu
+            rebuild_type_menu("create-type-menu")
         }
     }
 
