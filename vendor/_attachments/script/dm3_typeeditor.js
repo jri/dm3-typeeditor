@@ -83,9 +83,19 @@ function dm3_typeeditor() {
     this.post_update = function(doc) {
         if (doc.type == "Topic" && doc.topic_type == "Topic Type") {
             // 1) Update cached type definition
-            var type_id = get_field(doc, "type-id").content
+            var type_id = get_value(doc, "type-id")
             add_topic_type(type_id, doc.type_definition)    // Note: semantically this is an "update type" but
                                                             // functional there is no difference to "add type"
+            // 2) Rebuild type menu
+            rebuild_type_menu("create-type-menu")
+        }
+    }
+
+    this.post_delete = function(doc) {
+        if (doc.type == "Topic" && doc.topic_type == "Topic Type") {
+            // 1) Update cached type definition
+            var type_id = get_value(doc, "type-id")
+            remove_topic_type(type_id)
             // 2) Rebuild type menu
             rebuild_type_menu("create-type-menu")
         }
