@@ -3,9 +3,12 @@ function dm3_typeeditor() {
     add_topic_type("Topic Type", {
         fields: [
             {id: "type-id", model: {type: "text"}, view: {editor: "single line", label: "Type ID"}, content: ""},
+            {id: "Icon",    model: {type: "relation", related_type: "Icon"}, view: {editor: "iconpicker"}},
             {id: "Fields",  model: {type: "field-definition"}}
         ],
-        view: {},
+        view: {
+            icon_src: "vendor/dm3-typeeditor/images/drawer.png"
+        },
         implementation: "PlainDocument"
     })
 
@@ -55,6 +58,11 @@ function dm3_typeeditor() {
             // Note: we override all cached type definitions with the DB's version because it
             // might differ. This is the case if programatically created (through plugins)
             // type definitions are changed interactively.
+            //
+            // TODO: syncing type definitions is required in the other direction too!
+            // Programatically created type definitions might be more up-to-date if
+            // a plugin's type definition is modified by plugin developer.
+            //
             add_topic_type(type_id, db_topic_types[type_id])    // Note: semantically this is an "update type" but
                                                                 // functional there is no difference to "add type"
             // load_count++
@@ -155,6 +163,10 @@ function dm3_typeeditor() {
                     editor.update_field()
                 }
             }
+            // update type definition (icon)
+            var icon_src = $("#field_Icon img").attr("src")
+            doc.type_definition.view.icon_src = icon_src
+            // doc.view.icon_src = icon_src
         }
     }
 

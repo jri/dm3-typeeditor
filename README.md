@@ -2,7 +2,7 @@
 DeepaMehta 3 Type Editor Plugin
 ===============================
 
-The Type Editor plugin allows interactive creation and modification of topic types. You can e.g. create a topic type "Book" along with its fields "Title", "Author", "Abstract", "Publication Date". Once the "Book" topic type is defined you can create books and search for books (type-based searching is provided by the optional DM3 Typing plugin).
+The DM3 Type Editor plugin allows interactive creation and modification of topic types. You can e.g. create a topic type "Book" along with its fields "Title", "Author", "Abstract", "Publication Date". Once the "Book" topic type is defined you can create books and search for books (type-based searching is provided by the optional DM3 Typing plugin).
 
 Fields carries different types of data. There are 4 field types: *Text*, *Styled Text* (backed by a WYSIWYG editor), *Date* (backed by a datepicker widget), and *Relation*. The latter is special: a Relation field carries a relation to another topic. In the book example the "Author" field could carry a relation to a *Person* topic.
 
@@ -14,6 +14,16 @@ Requirements
 
 * A DeepaMehta 3 installation  
   <http://github.com/jri/deepamehta3>
+
+* Other DeepaMehta 3 plugins:
+
+  - *DM3 Icons*  
+    <http://github.com/jri/dm3-icons>  
+    The DM3 Icons plugin let you attatch an icon to a topic type by means of an iconpicker widget.
+
+  - *DM3 Typing* (optional install)  
+    <http://github.com/jri/dm3-typing>  
+    The DM3 Typing plugin provides a type-based search.
 
 
 Installation
@@ -31,9 +41,7 @@ Installation
 4.  Copy additional stuff:
         cp -r vendor/dm3-typeeditor/views/dm3-typeeditor_topictypes views
 
-5.  Optional: install the DM3 Typing plugin as described on its homepage:  
-    <http://github.com/jri/dm3-typing>  
-    This plugin provides you type-based searching.
+5.  Install the other DeepaMehta plugins (see Requirements) as described on the respective pages.
 
 6.  Upload changes to CouchDB:
         couchapp push http://localhost:5984/deepamehta3-db
@@ -52,7 +60,7 @@ Usage Hints
 
 * Remove a field by clicking the "Minus" button next to the field.
 
-* When you're ready with the type definition, click the *Save* button. The newly created type now appears in the Create menu -- ready for creating topics of that type.
+* When you're done with the type definition, click the *Save* button. The newly created type now appears in the Create menu -- ready for creating topics of that type.
 
 * Delete a topic type by revealing it, and then delete it (just like any other topic).
 
@@ -69,4 +77,4 @@ Issues
 
 ------------
 Jörg Richter  
-Jan 31, 2010
+Feb 9, 2010
