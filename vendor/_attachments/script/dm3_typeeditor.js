@@ -1,5 +1,7 @@
 function dm3_typeeditor() {
 
+    javascript_source("vendor/dm3-typeeditor/script/base64.js")
+
     add_topic_type("Topic Type", {
         fields: [
             {id: "type-id", model: {type: "text"}, view: {editor: "single line", label: "Type ID"}, content: ""},
@@ -188,7 +190,45 @@ function dm3_typeeditor() {
     }
 
     function save_topic_type(type_id, typedef) {
-        create_topic("Topic Type", {"type-id": type_id}, {type_definition: typedef})
+        log("Saving topic type \"" + type_id + "\"")
+        var type_topic = create_topic("Topic Type", {"type-id": type_id}, {type_definition: typedef})
+        // icon
+        if (typedef.view && typedef.view.icon_src) {
+            var icon_src = typedef.view.icon_src
+            var icon_id = dm3_icons.by_attachment(icon_src)
+            if (icon_id) {
+                log("..... icon topic for " + icon_src + " exists already")
+            } else {
+                log("..... creating icon topic for " + icon_src)
+                var attachment = build_attachment(icon_src)
+                var icon_topic = create_topic("Icon", {"Name": basename(icon_src)}, {_attachments: attachment})
+                var icon_id = icon_topic._id
+                log("..... " + icon_topic._id)
+            }
+            create_relation("Relation", type_topic._id, icon_id)
+        }
+
+        function build_attachment(icon_src) {
+            var icon_data = db.openBinaryAttachment("_design/deepamehta3", icon_src)
+            var encoded_data = Base64.encode(icon_data)
+            log(".......... icon data: " + icon_data.length + " bytes")
+            log(".......... " + dump(icon_data, 32))
+            log(".......... " + encoded_data.substr(0, 50) + " (" + encoded_data.length + " base64 bytes)")
+            var attachment = {}
+            attachment[icon_src] = {
+                content_type: mime_type(icon_src),
+                data: encoded_data
+            }
+            return attachment
+        }
+
+        function dump(str, count) {
+            var d = ""
+            for (var i = 0; i < count; i++) {
+                d += str.charCodeAt(i) + " "
+            }
+            return d
+        }
     }
 
     function do_add_field() {
