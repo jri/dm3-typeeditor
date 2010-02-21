@@ -1,6 +1,7 @@
 function dm3_typeeditor() {
 
     javascript_source("vendor/dm3-typeeditor/script/base64.js")
+    css_stylesheet("vendor/dm3-typeeditor/style/dm3-typeeditor.css")
 
     add_topic_type("Topic Type", {
         fields: [
@@ -129,11 +130,17 @@ function dm3_typeeditor() {
             //
             var form_field = $("<div>")
             form_field.append(table)
-            form_field.append(add_field_button)
+            form_field.append(add_field_button.addClass("add-field-button"))
             return form_field
         }
     }
 
+    /**
+     * Adds the field editors to the page.
+     *
+     * Note: we must do this in the "post" hook because add_field_editor()
+     * requires the "field-editors" table to exist on the page already.
+     */
     this.post_render_form_field = function(field, doc) {
         if (field.model.type == "field-definition") {
             field_editors = []
@@ -249,8 +256,8 @@ function dm3_typeeditor() {
         var delete_button = ui.button("deletefield-button_" + editor_id, do_delete_field, "", "circle-minus")
         var fieldname_input = $("<input>").val(field_label(field))
         var fieldtype_menu = create_fieldtype_menu()
-        var td1 = $("<td>").append(delete_button)
-        var td2 = $("<td>")
+        var td1 = $("<td>").addClass("field-editor").append(delete_button.addClass("delete-field-button"))
+        var td2 = $("<td>").addClass("field-editor")
         // - options area -
         // The options area holds fieldtype-specific GUI elements.
         // For text fields, e.g. the text editor menu ("single line" / "multi line")
@@ -258,8 +265,10 @@ function dm3_typeeditor() {
         var options_area = $("<span>")      // view
         var lines_input                     // view
         //
-        td2.append("Field Name ").append(fieldname_input).append("<br>")
-        td2.append("Type ").append(fieldtype_menu.dom).append(options_area)
+        td2.append($("<span>").addClass("field-name field-editor-label").text("Name"))
+        td2.append(fieldname_input).append("<br>")
+        td2.append($("<span>").addClass("field-name field-editor-label").text("Type"))
+        td2.append(fieldtype_menu.dom).append(options_area)
         build_options_area()
         //
         this.field_id = field.id
@@ -300,6 +309,7 @@ function dm3_typeeditor() {
         function create_fieldtype_menu() {
             var menu_id = "fieldtype-menu_" + editor_id
             var menu = ui.menu(menu_id, fieldtype_changed)
+            menu.dom.addClass("field-editor-menu")
             // add items
             for (var fieldtype in FIELD_TYPES) {
                 menu.add_item({label: FIELD_TYPES[fieldtype], value: fieldtype})
@@ -377,6 +387,7 @@ function dm3_typeeditor() {
 
             function build_texteditor_menu() {
                 var texteditor_menu = ui.menu("texteditor-menu_" + editor_id, texteditor_changed)
+                texteditor_menu.dom.addClass("field-editor-menu")
                 texteditor_menu.add_item({label: "Single Line", value: "single line"})
                 texteditor_menu.add_item({label: "Multi Line", value: "multi line"})
                 texteditor_menu.select(options.view.editor)
@@ -393,7 +404,8 @@ function dm3_typeeditor() {
                 lines_input = $("<input>").attr("size", 3)
                 lines_input.val(options.view.lines || DEFAULT_AREA_HEIGHT)
                 //
-                options_area.append("Lines ").append(lines_input)
+                options_area.append($("<span>").addClass("field-name field-editor-label").text("Lines"))
+                options_area.append(lines_input)
             }
 
             function build_topictype_menu() {
