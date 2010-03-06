@@ -46,35 +46,57 @@ Installation
 6.  Upload changes to CouchDB:
         couchapp push http://localhost:5984/deepamehta3-db
 
-7.  Check if installation is successful: visit DeepaMehta 3 in your webbrowser (resp. press reload):  
+7.  Check if installation was successful: visit DeepaMehta 3 in your webbrowser (resp. press reload):  
     <http://localhost:5984/deepamehta3-db/_design/deepamehta3/index.html>  
-    If you see the *Topic Type* entry in the *Create* menu (upper right corner) everything is OK.
+    If you see the *Topic Type* entry in the type menu (next to the *Create* button) everything is OK.
 
 
 Usage Hints
 -----------
 
-* Create a new topic type by choosing *Topic Type* from the Create menu and click the *Create* button. (A topic type is itself a topic and is represented on the canvas.) Enter a name for the topic type.
+*   Create a new topic type by choosing *Topic Type* from the Create menu and click the *Create* button.
+    (A topic type is itself a topic and is represented on the canvas.) Enter a name for the topic type.
 
-* Add a field by clicking the *Add Field* button. Name the field and choose its type. Four field types are available: *Text*, *Styled Text*, *Date*, and *Relation*. Depending on the field type set further field options, e.g. for Relation fields choose the related topic type.
+*   Add a field by clicking the *Add Field* button. Name the field and choose its type.
+    Four field types are available: *Text*, *Styled Text*, *Date*, and *Relation*.
+    Depending on the field type set further field options, e.g. for Relation fields choose the related topic type.
 
-* Remove a field by clicking the "Minus" button next to the field.
+*   Remove a field by clicking the "Minus" button next to the field.
 
-* When you're done with the type definition, click the *Save* button. The newly created type now appears in the Create menu -- ready for creating topics of that type.
+*   When you're done with the type definition, click the *Save* button.
+    The newly created type now appears in the Create menu -- ready for creating topics of that type.
 
-* Delete a topic type by revealing it, and then delete it (just like any other topic).
+*   Delete a topic type by revealing it, and then delete it (just like any other topic).
+
+*   Note: When you change a topic type definition, e.g. by renaming it, or by adding/removing fields,
+    or even when you delete the topic type, all this doesn't affect existing topics of that type.
 
 
-Issues
-------
+Updating
+--------
 
-* When you change a topic type definition, e.g. by renaming it, or by adding/removing fields, or even when you delete the topic type, all this doesn't affect existing topics of that type.
+1.  Go to your DeepaMehta 3 installation directory:
+        cd deepamehta3
 
-* No custom icons, e.g. a "Book" icon can be defined interactively yet.
+2.  Update DeepaMehta 3 Type Editor Plugin:
+        couchapp vendor update dm3-typeeditor
 
-* There is yet no custom icon representing a *Topic Type* itself.
+3.  Copy additional stuff:
+        cp -r vendor/dm3-typeeditor/views/dm3-typeeditor_topictypes views
+
+4.  Upload changes to CouchDB:
+        couchapp push http://localhost:5984/deepamehta3-db
+
+
+Version History
+---------------
+
+**v0.3** -- Mar 6, 2010
+
+* Basic functionality
+* Compatible with DeepaMehta 3 v0.3
 
 
 ------------
 Jörg Richter  
-Feb 9, 2010
+Mar 6, 2010
